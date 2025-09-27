@@ -68,10 +68,11 @@ def plot_precision_vs_recall_curve(p_values, r_values, plt_title=None):
     plt.close()
 
 
-def f_metric():
-    # TODO: implement this function
-    p, r = None
-    return p, r
+def f_metric(retrieved_docs, relevant_docs):
+    p, r = precision_recall(retrieved_docs, relevant_docs)
+
+    f_score = (2 * (p * r)) / (p + r)
+    return f_score
 
 
 def p_at_5():
@@ -80,7 +81,7 @@ def p_at_5():
     return p
 
 
-def p_at_7():
+def p_at_10():
     #TODO: implement this function
     p = None
     return p
@@ -100,7 +101,7 @@ def run_all_parts(dir):
     # Precision and Recall
     print('\nThe precision and recall scores for the various search algorithms with Google search as the baseline:')
     for ranking_name, retrieved_docs in search_results.items():
-        #call the precision_recall function with the proper arguments
+        # call the precision_recall function with the proper arguments
         p, r = precision_recall(retrieved_docs, relevant_docs)
         print(f'{ranking_name.ljust(11)} ranking  ==>  precision: {round(p, 2)} \t recall: {round(r, 2)}')
 
@@ -117,11 +118,11 @@ def run_all_parts(dir):
     print('\nComputing the single valued summaries')
     for ranking_name, retrieved_docs in search_results.items():
         # TODO: call these functions with the proper parameters
-        f_score = f_metric()
+        f_score = f_metric(retrieved_docs, relevant_docs)
         p_at_5_score = p_at_5()
-        p_at_7_score = p_at_7()
+        p_at_10_score = p_at_10()
         print(f'{ranking_name.ljust(11)}   ==>  f: {round(f_score, 2)} '
-              f'\t p@5: {round(p_at_5_score, 2)} \t p@7: {round(p_at_7_score, 2)}')
+              f'\t p@5: {round(p_at_5_score, 2)} \t p@10: {round(p_at_10_score, 2)}')
 
 
 if __name__ == '__main__':
