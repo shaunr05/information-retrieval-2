@@ -30,10 +30,10 @@ def get_search_results(algo, dir="query1_cache", top_n=20):
 
 
 def precision_recall(retrieved_docs, relevant_docs):
-    relevant_retrieved_docs = sum(1 for doc in retrieved_docs if doc in relevant_docs)
+    relevant_retrieved = sum(1 for doc in retrieved_docs if doc in relevant_docs)
 
-    p = relevant_retrieved_docs / relevant_docs # precision
-    r = relevant_retrieved_docs / retrieved_docs # recall
+    p = relevant_retrieved / len(retrieved_docs) # precision
+    r = relevant_retrieved / len(relevant_docs) # recall
     return p, r
 
 
@@ -75,15 +75,25 @@ def f_metric(retrieved_docs, relevant_docs):
     return f_score
 
 
-def p_at_5():
-    # TODO: implement this function
-    p = None
+def p_at_5(retrieved_docs, relevant_docs):
+    n = 5
+    top_n = n if len(retrieved_docs) >= n else len(retrieved_docs)
+
+    top_n_docs = retrieved_docs[:top_n]
+    relevant_retrieved = sum(1 for doc in top_n_docs if doc in relevant_docs)
+
+    p = relevant_retrieved / top_n if top_n > 0 else 0.0
     return p
 
 
-def p_at_10():
-    #TODO: implement this function
-    p = None
+def p_at_10(retrieved_docs, relevant_docs):
+    n = 10
+    top_n = n if len(retrieved_docs) >= n else len(retrieved_docs)
+
+    top_n_docs = retrieved_docs[:top_n]
+    relevant_retrieved = sum(1 for doc in top_n_docs if doc in relevant_docs)
+
+    p = relevant_retrieved / top_n if top_n > 0 else 0.0
     return p
 
 
@@ -117,10 +127,10 @@ def run_all_parts(dir):
     # Single valued Summaries
     print('\nComputing the single valued summaries')
     for ranking_name, retrieved_docs in search_results.items():
-        # TODO: call these functions with the proper parameters
+        # call these functions with the proper parameters
         f_score = f_metric(retrieved_docs, relevant_docs)
-        p_at_5_score = p_at_5()
-        p_at_10_score = p_at_10()
+        p_at_5_score = p_at_5(retrieved_docs, relevant_docs)
+        p_at_10_score = p_at_10(retrieved_docs, relevant_docs)
         print(f'{ranking_name.ljust(11)}   ==>  f: {round(f_score, 2)} '
               f'\t p@5: {round(p_at_5_score, 2)} \t p@10: {round(p_at_10_score, 2)}')
 
