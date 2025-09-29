@@ -43,13 +43,34 @@ def precision_at_11_standard_recall_levels(retrieved_docs, relevant_docs):
         if doc in relevant_docs:
             pr_values_for_relevant_retrieved_docs.append(precision_recall(retrieved_docs[:idx + 1], relevant_docs))
 
-    p_values, r_values = [], []
-    # TODO: Implement this function to compute the precision values for the 11 standard recall levels
-    # INSERT YOUR CODE HERE
-    return r_values, p_values
+    standard_recall_levels = [i / 10.0 for i in range(11)]
+
+    # Extract precision and recall values from the computed PR pairs
+    if not pr_values_for_relevant_retrieved_docs:
+        # No relevant documents - return zeros for all recall levels
+        return standard_recall_levels, [0.0] * 11
+
+    computed_precisions = [pr[0] for pr in pr_values_for_relevant_retrieved_docs]
+    computed_recalls = [pr[1] for pr in pr_values_for_relevant_retrieved_docs]
+
+    # Interpolate precision values for the 11 standard recall levels
+    interpolated_precisions = []
+    for target_recall in standard_recall_levels:
+        # Find the maximum precision at or after this recall level
+        max_precision = 0.0
+        # Look for precision values at recall levels >= target_recall
+        for i, recall in enumerate(computed_recalls):
+            if recall >= target_recall:
+                # Take the maximum precision from this point onwards
+                max_precision = max(computed_precisions[i:])
+                break
+
+        interpolated_precisions.append(max_precision)
+
+    return standard_recall_levels, interpolated_precisions
 
 
-def plot_precision_vs_recall_curve(p_values, r_values, plt_title=None):
+def plot_precision_vs_recall_curve(p_values, r_values, query, plt_title=None):
     plt.figure()
     plt.plot(r_values, p_values, marker='.')
     if plt_title:
@@ -57,19 +78,25 @@ def plot_precision_vs_recall_curve(p_values, r_values, plt_title=None):
     plt.xlabel('Recall')
     plt.ylabel('Precision')
     plt.ylim([-0.1, 1.1])
-    
+
     plots_dir = Path(f'plots')
     plots_dir.mkdir(parents=True, exist_ok=True)
 
+    query_dir = Path(f'plots/{query}')
+    query_dir.mkdir(parents=True, exist_ok=True)
+
     # make plt_title suitable for file name
     plt_title = plt_title.replace('\n', ' ').replace(':', ' -').replace('/', '-').replace('?', '').replace(' ', '_')
-    plt.savefig(f'plots/{plt_title}.png')
+    plt.savefig(f'plots/{query}/{plt_title}.png')
     plt.show()
     plt.close()
 
 
 def f_metric(retrieved_docs, relevant_docs):
     p, r = precision_recall(retrieved_docs, relevant_docs)
+
+    if p + r == 0:
+        return 0.0
 
     f_score = (2 * (p * r)) / (p + r)
     return f_score
@@ -118,11 +145,11 @@ def run_all_parts(dir):
     # Precision vs Recall Plots
     print('\nPlotting precision vs recall plots')
     for ranking_name, retrieved_docs in search_results.items():
-        #TODO: call these functions with the proper parameters
-        r_values, p_values = precision_at_11_standard_recall_levels()
+        # Call the function with proper parameters
+        r_values, p_values = precision_at_11_standard_recall_levels(retrieved_docs, relevant_docs)
         plot_title = (f'Precision vs Recall plot for {ranking_name} ranking\n'
                       f'considering Google search as the baseline')
-        plot_precision_vs_recall_curve(p_values, r_values, plot_title)
+        plot_precision_vs_recall_curve(p_values, r_values, dir, plot_title)
 
     # Single valued Summaries
     print('\nComputing the single valued summaries')
